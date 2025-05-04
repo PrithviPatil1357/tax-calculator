@@ -2,9 +2,6 @@
 .gitignore
 .dockerignore
 target/
-.mvn/
-mvnw
-mvnw.cmd
 src/test/
 README.md
 cursor_docs/
