@@ -58,8 +58,13 @@ const SavingsRangeTable: React.FC = () => {
         throw new Error("Minimum CTC cannot be greater than Maximum CTC.");
       }
 
+      // Construct API URL using environment variable
+      const apiUrl = `${
+        import.meta.env.VITE_API_BASE_URL
+      }/api/v1/tax/calculate-savings-range`;
+
       const response = await fetch(
-        "http://localhost:8080/api/v1/tax/calculate-savings-range",
+        apiUrl, // Use the constructed URL
         {
           method: "POST",
           headers: {
@@ -69,6 +74,8 @@ const SavingsRangeTable: React.FC = () => {
             minCtc: minCtcValue,
             maxCtc: maxCtcValue,
             monthlyExpense: expenseValue,
+            // Note: Increment for this table is currently handled backend-side
+            // If you want user to control increment here too, add state & pass it
           }),
         }
       );

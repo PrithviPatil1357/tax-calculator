@@ -27,8 +27,13 @@ const TakeHomeCalculator: React.FC = () => {
         return;
       }
 
+      // Construct API URL using environment variable
+      const apiUrl = `${
+        import.meta.env.VITE_API_BASE_URL
+      }/api/v1/tax/calculate-take-home`;
+
       const response = await fetch(
-        "http://localhost:8080/api/v1/tax/calculate-take-home",
+        apiUrl, // Use the constructed URL
         {
           method: "POST",
           headers: {

@@ -92,8 +92,13 @@ const TimeToTargetChart: React.FC = () => {
           throw new Error("Invalid Increment (must be positive)");
         if (minCtcValue > maxCtcValue) throw new Error("Min CTC > Max CTC");
 
+        // Construct API URL using environment variable
+        const apiUrl = `${
+          import.meta.env.VITE_API_BASE_URL
+        }/api/v1/tax/calculate-time-to-target`;
+
         const response = await fetch(
-          "http://localhost:8080/api/v1/tax/calculate-time-to-target",
+          apiUrl, // Use the constructed URL
           {
             method: "POST",
             headers: {

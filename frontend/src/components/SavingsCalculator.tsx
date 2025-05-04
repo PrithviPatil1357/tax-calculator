@@ -67,8 +67,13 @@ const SavingsCalculator: React.FC = () => {
         }
       }
 
+      // Construct API URL using environment variable
+      const apiUrl = `${
+        import.meta.env.VITE_API_BASE_URL
+      }/api/v1/tax/calculate-savings`;
+
       const response = await fetch(
-        "http://localhost:8080/api/v1/tax/calculate-savings",
+        apiUrl, // Use the constructed URL
         {
           method: "POST",
           headers: {
