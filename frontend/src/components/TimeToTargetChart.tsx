@@ -49,7 +49,7 @@ const TimeToTargetChart: React.FC = () => {
   const [monthlyExpense, setMonthlyExpense] = useState<string>("");
   const [targetAmount, setTargetAmount] = useState<string>("");
   const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false); // Add single state
-  const [increment, setIncrement] = useState<string>(""); // Increment likely not in Lakhs
+  const [increment, setIncrement] = useState<string>("");
 
   const [chartData, setChartData] = useState<any>(null); // State to hold chart data
   const [error, setError] = useState<string | null>(null);
@@ -78,7 +78,7 @@ const TimeToTargetChart: React.FC = () => {
         const maxCtcValueRaw = parseFloat(maxCtc);
         const expenseValueRaw = parseFloat(monthlyExpense);
         const targetValueRaw = parseFloat(targetAmount);
-        const incrementValue = parseFloat(increment);
+        const incrementValueRaw = parseFloat(increment);
 
         // Apply Lakhs conversion before validation, based on single state
         const minCtcValue = isLakhsInput
@@ -93,6 +93,9 @@ const TimeToTargetChart: React.FC = () => {
         const targetValue = isLakhsInput
           ? targetValueRaw * 100000
           : targetValueRaw;
+        const incrementValue = isLakhsInput
+          ? incrementValueRaw * 100000
+          : incrementValueRaw;
 
         // Frontend validation (similar to backend)
         if (isNaN(minCtcValue) || minCtcValue < 0)
