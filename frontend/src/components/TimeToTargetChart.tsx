@@ -44,12 +44,12 @@ const formatCurrency = (value: number): string => {
 };
 
 const TimeToTargetChart: React.FC = () => {
-  const [minCtc, setMinCtc] = useState<string>("1000000"); // Default values
-  const [maxCtc, setMaxCtc] = useState<string>("3000000");
-  const [monthlyExpense, setMonthlyExpense] = useState<string>("40000");
-  const [targetAmount, setTargetAmount] = useState<string>("5000000");
+  const [minCtc, setMinCtc] = useState<string>(""); // Default values
+  const [maxCtc, setMaxCtc] = useState<string>("");
+  const [monthlyExpense, setMonthlyExpense] = useState<string>("");
+  const [targetAmount, setTargetAmount] = useState<string>("");
   const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false); // Add single state
-  const [increment, setIncrement] = useState<string>("500000"); // Increment likely not in Lakhs
+  const [increment, setIncrement] = useState<string>(""); // Increment likely not in Lakhs
 
   const [chartData, setChartData] = useState<any>(null); // State to hold chart data
   const [error, setError] = useState<string | null>(null);
