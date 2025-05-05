@@ -24,7 +24,6 @@ function App() {
       case "reverse":
         return <ReverseCalculator />;
       default:
-        const _exhaustiveCheck: never = activeTab;
         return <TakeHomeCalculator />;
     }
   };
