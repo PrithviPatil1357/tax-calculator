@@ -371,7 +371,7 @@ const TimeToTargetChart: React.FC = () => {
             id="incrementTarget"
             value={increment}
             onChange={(e) => setIncrement(e.target.value)}
-            placeholder="e.g., 500000"
+            placeholder={isLakhsInput ? "e.g., 5" : "e.g., 500000"}
             min="1" // Ensure positive increment
             style={{
               width: "100%",
