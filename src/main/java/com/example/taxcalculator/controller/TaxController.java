@@ -17,9 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/tax")
-// Allow requests from the default Vite development server port
-// @CrossOrigin(origins = "http://localhost:5173") // Comment out or remove the old one
-@CrossOrigin(origins = "*") // Allow all origins for now
+// @CrossOrigin annotation removed, CORS will be handled globally
 @RequiredArgsConstructor // Injects TaxCalculationService via constructor
 public class TaxController {
 
