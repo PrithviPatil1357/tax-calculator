@@ -10,6 +10,7 @@ interface TakeHomeDetails {
 
 const TakeHomeCalculator: React.FC = () => {
   const [annualCtc, setAnnualCtc] = useState<string>("");
+  const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false);
   const [result, setResult] = useState<TakeHomeDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -20,12 +21,18 @@ const TakeHomeCalculator: React.FC = () => {
     setResult(null);
 
     try {
-      const ctcValue = parseFloat(annualCtc);
-      if (isNaN(ctcValue) || ctcValue < 0) {
-        setError("Please enter a valid positive number for Annual CTC.");
+      let ctcValueRaw = parseFloat(annualCtc);
+      if (isNaN(ctcValueRaw) || ctcValueRaw < 0) {
+        setError(
+          `Please enter a valid positive number for Annual CTC${
+            isLakhsInput ? " (Lakhs)" : ""
+          }.`
+        );
         setIsLoading(false);
         return;
       }
+
+      const ctcValue = isLakhsInput ? ctcValueRaw * 100000 : ctcValueRaw;
 
       // Construct API URL using environment variable
       const apiUrl = `${
@@ -98,10 +105,26 @@ const TakeHomeCalculator: React.FC = () => {
           id="annualCtc"
           value={annualCtc}
           onChange={(e) => setAnnualCtc(e.target.value)}
-          placeholder="e.g., 1200000"
+          placeholder={isLakhsInput ? "e.g., 12" : "e.g., 1200000"}
           disabled={isLoading}
-          style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
+          style={{
+            width: "calc(100% - 80px)",
+            padding: "8px",
+            boxSizing: "border-box",
+            marginRight: "10px",
+          }}
         />
+        <label htmlFor="lakhsCheckbox" style={{ whiteSpace: "nowrap" }}>
+          <input
+            type="checkbox"
+            id="lakhsCheckbox"
+            checked={isLakhsInput}
+            onChange={(e) => setIsLakhsInput(e.target.checked)}
+            disabled={isLoading}
+            style={{ marginRight: "5px" }}
+          />
+          Lakhs?
+        </label>
       </div>
       <button
         onClick={handleCalculate}

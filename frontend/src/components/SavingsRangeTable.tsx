@@ -23,8 +23,11 @@ const formatCurrency = (value: number): string => {
 
 const SavingsRangeTable: React.FC = () => {
   const [minCtc, setMinCtc] = useState<string>("");
+  const [isMinCtcLakhs, setIsMinCtcLakhs] = useState<boolean>(false);
   const [maxCtc, setMaxCtc] = useState<string>("");
+  const [isMaxCtcLakhs, setIsMaxCtcLakhs] = useState<boolean>(false);
   const [monthlyExpense, setMonthlyExpense] = useState<string>("");
+  const [isExpenseLakhs, setIsExpenseLakhs] = useState<boolean>(false);
   const [results, setResults] = useState<SavingsRangeItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -35,25 +38,43 @@ const SavingsRangeTable: React.FC = () => {
     setResults([]);
 
     try {
-      const minCtcValue = parseFloat(minCtc);
-      const maxCtcValue = parseFloat(maxCtc);
-      const expenseValue = parseFloat(monthlyExpense);
+      const minCtcValueRaw = parseFloat(minCtc);
+      const maxCtcValueRaw = parseFloat(maxCtc);
+      const expenseValueRaw = parseFloat(monthlyExpense);
 
-      if (isNaN(minCtcValue) || minCtcValue < 0) {
+      if (isNaN(minCtcValueRaw) || minCtcValueRaw < 0) {
         throw new Error(
-          "Please enter a valid positive number for Minimum CTC."
+          `Please enter a valid positive number for Minimum CTC${
+            isMinCtcLakhs ? " (Lakhs)" : ""
+          }.`
         );
       }
-      if (isNaN(maxCtcValue) || maxCtcValue < 0) {
+      if (isNaN(maxCtcValueRaw) || maxCtcValueRaw < 0) {
         throw new Error(
-          "Please enter a valid positive number for Maximum CTC."
+          `Please enter a valid positive number for Maximum CTC${
+            isMaxCtcLakhs ? " (Lakhs)" : ""
+          }.`
         );
       }
-      if (isNaN(expenseValue) || expenseValue < 0) {
+      if (isNaN(expenseValueRaw) || expenseValueRaw < 0) {
         throw new Error(
-          "Please enter a valid positive number for Monthly Expense."
+          `Please enter a valid positive number for Monthly Expense${
+            isExpenseLakhs ? " (Lakhs)" : ""
+          }.`
         );
       }
+
+      // Apply lakhs conversion
+      const minCtcValue = isMinCtcLakhs
+        ? minCtcValueRaw * 100000
+        : minCtcValueRaw;
+      const maxCtcValue = isMaxCtcLakhs
+        ? maxCtcValueRaw * 100000
+        : maxCtcValueRaw;
+      const expenseValue = isExpenseLakhs
+        ? expenseValueRaw * 100000
+        : expenseValueRaw;
+
       if (minCtcValue > maxCtcValue) {
         throw new Error("Minimum CTC cannot be greater than Maximum CTC.");
       }
@@ -122,54 +143,108 @@ const SavingsRangeTable: React.FC = () => {
       >
         <div>
           <label htmlFor="minCtcRange">Min CTC (INR):</label>
-          <input
-            type="number"
-            id="minCtcRange"
-            value={minCtc}
-            onChange={(e) => setMinCtc(e.target.value)}
-            placeholder="e.g., 1000000"
-            disabled={isLoading}
-            style={{
-              width: "100%",
-              padding: "8px",
-              boxSizing: "border-box",
-              marginTop: "5px",
-            }}
-          />
+          <div
+            style={{ display: "flex", alignItems: "center", marginTop: "5px" }}
+          >
+            <input
+              type="number"
+              id="minCtcRange"
+              value={minCtc}
+              onChange={(e) => setMinCtc(e.target.value)}
+              placeholder={isMinCtcLakhs ? "e.g., 10" : "e.g., 1000000"}
+              disabled={isLoading}
+              style={{
+                flexGrow: 1,
+                padding: "8px",
+                boxSizing: "border-box",
+                marginRight: "10px",
+              }}
+            />
+            <label
+              htmlFor="minCtcLakhsCheckbox"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              <input
+                type="checkbox"
+                id="minCtcLakhsCheckbox"
+                checked={isMinCtcLakhs}
+                onChange={(e) => setIsMinCtcLakhs(e.target.checked)}
+                disabled={isLoading}
+                style={{ marginRight: "5px" }}
+              />
+              Lakhs?
+            </label>
+          </div>
         </div>
         <div>
           <label htmlFor="maxCtcRange">Max CTC (INR):</label>
-          <input
-            type="number"
-            id="maxCtcRange"
-            value={maxCtc}
-            onChange={(e) => setMaxCtc(e.target.value)}
-            placeholder="e.g., 3000000"
-            disabled={isLoading}
-            style={{
-              width: "100%",
-              padding: "8px",
-              boxSizing: "border-box",
-              marginTop: "5px",
-            }}
-          />
+          <div
+            style={{ display: "flex", alignItems: "center", marginTop: "5px" }}
+          >
+            <input
+              type="number"
+              id="maxCtcRange"
+              value={maxCtc}
+              onChange={(e) => setMaxCtc(e.target.value)}
+              placeholder={isMaxCtcLakhs ? "e.g., 30" : "e.g., 3000000"}
+              disabled={isLoading}
+              style={{
+                flexGrow: 1,
+                padding: "8px",
+                boxSizing: "border-box",
+                marginRight: "10px",
+              }}
+            />
+            <label
+              htmlFor="maxCtcLakhsCheckbox"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              <input
+                type="checkbox"
+                id="maxCtcLakhsCheckbox"
+                checked={isMaxCtcLakhs}
+                onChange={(e) => setIsMaxCtcLakhs(e.target.checked)}
+                disabled={isLoading}
+                style={{ marginRight: "5px" }}
+              />
+              Lakhs?
+            </label>
+          </div>
         </div>
         <div>
           <label htmlFor="monthlyExpenseRange">Monthly Expense (INR):</label>
-          <input
-            type="number"
-            id="monthlyExpenseRange"
-            value={monthlyExpense}
-            onChange={(e) => setMonthlyExpense(e.target.value)}
-            placeholder="e.g., 40000"
-            disabled={isLoading}
-            style={{
-              width: "100%",
-              padding: "8px",
-              boxSizing: "border-box",
-              marginTop: "5px",
-            }}
-          />
+          <div
+            style={{ display: "flex", alignItems: "center", marginTop: "5px" }}
+          >
+            <input
+              type="number"
+              id="monthlyExpenseRange"
+              value={monthlyExpense}
+              onChange={(e) => setMonthlyExpense(e.target.value)}
+              placeholder={isExpenseLakhs ? "e.g., 0.4" : "e.g., 40000"}
+              disabled={isLoading}
+              style={{
+                flexGrow: 1,
+                padding: "8px",
+                boxSizing: "border-box",
+                marginRight: "10px",
+              }}
+            />
+            <label
+              htmlFor="expenseRangeLakhsCheckbox"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              <input
+                type="checkbox"
+                id="expenseRangeLakhsCheckbox"
+                checked={isExpenseLakhs}
+                onChange={(e) => setIsExpenseLakhs(e.target.checked)}
+                disabled={isLoading}
+                style={{ marginRight: "5px" }}
+              />
+              Lakhs?
+            </label>
+          </div>
         </div>
       </div>
 

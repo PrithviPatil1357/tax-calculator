@@ -14,6 +14,7 @@ type Period = "monthly" | "yearly";
 
 const ReverseCalculator: React.FC = () => {
   const [desiredTakeHomeInput, setDesiredTakeHomeInput] = useState<string>("");
+  const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false);
   const [period, setPeriod] = useState<Period>("yearly"); // Default to yearly
   const [calculatedCtc, setCalculatedCtc] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -26,14 +27,20 @@ const ReverseCalculator: React.FC = () => {
     setBackendMessage(null);
     setIsLoading(true);
 
-    const inputValue = parseFloat(desiredTakeHomeInput);
-    if (isNaN(inputValue) || inputValue <= 0) {
+    let inputValueRaw = parseFloat(desiredTakeHomeInput);
+
+    if (isNaN(inputValueRaw) || inputValueRaw <= 0) {
       setError(
-        `Please enter a valid positive desired ${period} take-home amount.`
+        `Please enter a valid positive desired ${period} take-home amount${
+          isLakhsInput ? " (Lakhs)" : ""
+        }.`
       );
       setIsLoading(false);
       return;
     }
+
+    // Apply lakhs conversion first
+    const inputValue = isLakhsInput ? inputValueRaw * 100000 : inputValueRaw;
 
     // Convert to yearly if monthly input is given
     const yearlyTakeHome = period === "monthly" ? inputValue * 12 : inputValue;
@@ -132,15 +139,46 @@ const ReverseCalculator: React.FC = () => {
           {/* Dynamic label based on selected period */}
           Desired {period === "yearly" ? "Yearly" : "Monthly"} Take-Home:
         </label>
-        <input
-          type="number"
-          id="desiredTakeHomeInput"
-          value={desiredTakeHomeInput}
-          onChange={(e) => setDesiredTakeHomeInput(e.target.value)}
-          placeholder={period === "yearly" ? "e.g., 1500000" : "e.g., 125000"}
-          disabled={isLoading}
-          style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-        />
+        <div
+          style={{ display: "flex", alignItems: "center", marginTop: "5px" }}
+        >
+          <input
+            type="number"
+            id="desiredTakeHomeInput"
+            value={desiredTakeHomeInput}
+            onChange={(e) => setDesiredTakeHomeInput(e.target.value)}
+            placeholder={
+              period === "yearly"
+                ? isLakhsInput
+                  ? "e.g., 15"
+                  : "e.g., 1500000"
+                : isLakhsInput
+                ? "e.g., 1.25"
+                : "e.g., 125000"
+            }
+            disabled={isLoading}
+            style={{
+              flexGrow: 1,
+              padding: "8px",
+              boxSizing: "border-box",
+              marginRight: "10px",
+            }}
+          />
+          <label
+            htmlFor="takeHomeLakhsCheckbox"
+            style={{ whiteSpace: "nowrap" }}
+          >
+            <input
+              type="checkbox"
+              id="takeHomeLakhsCheckbox"
+              checked={isLakhsInput}
+              onChange={(e) => setIsLakhsInput(e.target.checked)}
+              disabled={isLoading}
+              style={{ marginRight: "5px" }}
+            />
+            Lakhs?
+          </label>
+        </div>
       </div>
       {/* Apply similar button styling */}
       <button

@@ -20,10 +20,12 @@ const formatCurrency = (value: number): string => {
 
 const SavingsCalculator: React.FC = () => {
   const [annualCtc, setAnnualCtc] = useState<string>("");
+  const [isCtcLakhs, setIsCtcLakhs] = useState<boolean>(false);
   const [expenseType, setExpenseType] = useState<"annual" | "monthly">(
     "monthly"
   );
   const [expenseValue, setExpenseValue] = useState<string>("");
+  const [isExpenseLakhs, setIsExpenseLakhs] = useState<boolean>(false);
   const [result, setResult] = useState<SavingsDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -34,21 +36,32 @@ const SavingsCalculator: React.FC = () => {
     setResult(null);
 
     try {
-      const ctcValue = parseFloat(annualCtc);
-      const expValue = parseFloat(expenseValue);
+      const ctcValueRaw = parseFloat(annualCtc);
+      const expValueRaw = expenseValue ? parseFloat(expenseValue) : 0; // Handle empty expense
 
-      if (isNaN(ctcValue) || ctcValue < 0) {
-        setError("Please enter a valid positive number for Annual CTC.");
-        setIsLoading(false);
-        return;
-      }
-      if (expenseValue && (isNaN(expValue) || expValue < 0)) {
+      if (isNaN(ctcValueRaw) || ctcValueRaw < 0) {
         setError(
-          "Please enter a valid positive number for Expense, or leave blank."
+          `Please enter a valid positive number for Annual CTC${
+            isCtcLakhs ? " (Lakhs)" : ""
+          }.`
         );
         setIsLoading(false);
         return;
       }
+      // Validate expense only if a value is entered
+      if (expenseValue && (isNaN(expValueRaw) || expValueRaw < 0)) {
+        setError(
+          `Please enter a valid positive number for Expense${
+            isExpenseLakhs ? " (Lakhs)" : ""
+          }, or leave blank.`
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // Apply lakhs conversion
+      const ctcValue = isCtcLakhs ? ctcValueRaw * 100000 : ctcValueRaw;
+      const expValue = isExpenseLakhs ? expValueRaw * 100000 : expValueRaw;
 
       const payload: {
         annualCtc: number;
@@ -119,20 +132,35 @@ const SavingsCalculator: React.FC = () => {
       {/* Annual CTC Input */}
       <div style={{ marginBottom: "15px" }}>
         <label htmlFor="savingsAnnualCtc">Annual CTC (INR):</label>
-        <input
-          type="number"
-          id="savingsAnnualCtc"
-          value={annualCtc}
-          onChange={(e) => setAnnualCtc(e.target.value)}
-          placeholder="e.g., 1500000"
-          disabled={isLoading}
-          style={{
-            width: "100%",
-            padding: "8px",
-            boxSizing: "border-box",
-            marginTop: "5px",
-          }}
-        />
+        <div
+          style={{ display: "flex", alignItems: "center", marginTop: "5px" }}
+        >
+          <input
+            type="number"
+            id="savingsAnnualCtc"
+            value={annualCtc}
+            onChange={(e) => setAnnualCtc(e.target.value)}
+            placeholder={isCtcLakhs ? "e.g., 15" : "e.g., 1500000"}
+            disabled={isLoading}
+            style={{
+              flexGrow: 1, // Use flexGrow instead of width
+              padding: "8px",
+              boxSizing: "border-box",
+              marginRight: "10px", // Add margin for spacing
+            }}
+          />
+          <label htmlFor="ctcLakhsCheckbox" style={{ whiteSpace: "nowrap" }}>
+            <input
+              type="checkbox"
+              id="ctcLakhsCheckbox"
+              checked={isCtcLakhs}
+              onChange={(e) => setIsCtcLakhs(e.target.checked)}
+              disabled={isLoading}
+              style={{ marginRight: "5px" }}
+            />
+            Lakhs?
+          </label>
+        </div>
       </div>
 
       {/* Expense Input */}
@@ -160,6 +188,20 @@ const SavingsCalculator: React.FC = () => {
             disabled={isLoading}
             style={{ flexGrow: 1, padding: "8px", boxSizing: "border-box" }}
           />
+          <label
+            htmlFor="expenseLakhsCheckbox"
+            style={{ whiteSpace: "nowrap", marginLeft: "10px" }}
+          >
+            <input
+              type="checkbox"
+              id="expenseLakhsCheckbox"
+              checked={isExpenseLakhs}
+              onChange={(e) => setIsExpenseLakhs(e.target.checked)}
+              disabled={isLoading}
+              style={{ marginRight: "5px" }}
+            />
+            Lakhs?
+          </label>
         </div>
       </div>
 
