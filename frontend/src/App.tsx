@@ -4,8 +4,9 @@ import TakeHomeCalculator from "./components/TakeHomeCalculator";
 import SavingsCalculator from "./components/SavingsCalculator";
 import SavingsRangeTable from "./components/SavingsRangeTable";
 import TimeToTargetChart from "./components/TimeToTargetChart";
+import ReverseCalculator from "./components/ReverseCalculator";
 
-type Tab = "takeHome" | "savings" | "savingsRange" | "timeToTarget";
+type Tab = "takeHome" | "savings" | "savingsRange" | "timeToTarget" | "reverse";
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>("takeHome");
@@ -20,7 +21,10 @@ function App() {
         return <SavingsRangeTable />;
       case "timeToTarget":
         return <TimeToTargetChart />;
+      case "reverse":
+        return <ReverseCalculator />;
       default:
+        const _exhaustiveCheck: never = activeTab;
         return <TakeHomeCalculator />;
     }
   };
@@ -74,6 +78,12 @@ function App() {
           onClick={() => setActiveTab("timeToTarget")}
         >
           Time to Target
+        </button>
+        <button
+          style={tabButtonStyle("reverse")}
+          onClick={() => setActiveTab("reverse")}
+        >
+          Reverse Calculator
         </button>
       </div>
 

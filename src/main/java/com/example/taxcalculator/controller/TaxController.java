@@ -8,6 +8,8 @@ import com.example.taxcalculator.dto.CtcRangeRequest;
 import com.example.taxcalculator.dto.RangeSavingsResponse;
 import com.example.taxcalculator.dto.TimeToTargetRequest;
 import com.example.taxcalculator.dto.TimeToTargetResponse;
+import com.example.taxcalculator.dto.TakeHomeRequestDto;
+import com.example.taxcalculator.dto.CtcResponseDto;
 import com.example.taxcalculator.service.TaxCalculationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -76,6 +78,23 @@ public class TaxController {
         }
 
         TimeToTargetResponse response = taxCalculationService.calculateTimeToTargetForRange(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // New endpoint to calculate CTC from desired take-home
+    @PostMapping("/calculate-ctc")
+    public ResponseEntity<CtcResponseDto> calculateCtcForTakeHome(@RequestBody TakeHomeRequestDto request) {
+        // Basic validation (more can be added)
+        if (request.getDesiredYearlyTakeHome() <= 0) {
+            // Returning a specific DTO might be better than just badRequest()
+             CtcResponseDto errorResponse = CtcResponseDto.builder()
+                .requiredAnnualCtc(0) 
+                .message("Desired yearly take-home must be positive.")
+                .build();
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        CtcResponseDto response = taxCalculationService.calculateCtcForTakeHome(request);
         return ResponseEntity.ok(response);
     }
 } 

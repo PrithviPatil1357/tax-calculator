@@ -199,4 +199,70 @@ public class TaxCalculationService {
         return tax;
     }
 
+    // Method to calculate required Annual CTC for a desired Yearly Take Home
+    public CtcResponseDto calculateCtcForTakeHome(TakeHomeRequestDto request) {
+        double desiredYearlyTakeHome = request.getDesiredYearlyTakeHome();
+
+        // Basic validation: desired take-home cannot be negative
+        if (desiredYearlyTakeHome < 0) {
+            return CtcResponseDto.builder()
+                    .requiredAnnualCtc(0) // Or indicate error appropriately
+                    .message("Desired take-home cannot be negative.")
+                    .build();
+        }
+
+        // Binary search parameters
+        double lowCtc = 0.0;
+        // Set a high upper bound (e.g., 10 Cr or 100,000,000). Adjust if necessary.
+        double highCtc = 100000000.0;
+        double bestGuessCtc = 0.0;
+        int maxIterations = 100; // Prevent infinite loops
+        double tolerance = 1.0; // Stop when calculated take-home is within +/- 1 Rupee
+
+        for (int i = 0; i < maxIterations; i++) {
+            double midCtc = lowCtc + (highCtc - lowCtc) / 2.0;
+            double taxableIncome = Math.max(0, midCtc - STANDARD_DEDUCTION);
+            double annualTax = calculateTax(taxableIncome);
+            double currentTakeHome = midCtc - annualTax;
+
+            // Check if currentTakeHome is close enough
+            if (Math.abs(currentTakeHome - desiredYearlyTakeHome) <= tolerance) {
+                bestGuessCtc = midCtc;
+                break; // Found a suitable CTC
+            }
+
+            // Adjust search range
+            if (currentTakeHome < desiredYearlyTakeHome) {
+                // Need higher CTC to get higher take-home
+                lowCtc = midCtc;
+            } else {
+                // Need lower CTC to get lower take-home
+                highCtc = midCtc;
+            }
+
+            // Store the last mid-point as the best guess if we exhaust iterations
+            if (i == maxIterations - 1) {
+                bestGuessCtc = midCtc;
+            }
+        }
+
+        // Handle cases where the desired take-home might be unachievable
+        // (e.g., desired take-home is higher than the max possible take-home within the search range)
+        // Recalculate final take-home for the best guess to be precise
+        double finalTaxable = Math.max(0, bestGuessCtc - STANDARD_DEDUCTION);
+        double finalTax = calculateTax(finalTaxable);
+        double finalTakeHome = bestGuessCtc - finalTax;
+
+        String message = null;
+        if (Math.abs(finalTakeHome - desiredYearlyTakeHome) > tolerance * 10) { // Use a larger tolerance for the message
+            message = "Could not find an exact CTC match. This is the closest estimate.";
+            // Optionally, you could return 0 or throw an exception if no reasonable CTC is found.
+        }
+
+        return CtcResponseDto.builder()
+                .requiredAnnualCtc(bestGuessCtc)
+                .message(message)
+                .build();
+    }
+
 } 
