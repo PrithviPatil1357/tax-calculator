@@ -20,12 +20,11 @@ const formatCurrency = (value: number): string => {
 
 const SavingsCalculator: React.FC = () => {
   const [annualCtc, setAnnualCtc] = useState<string>("");
-  const [isCtcLakhs, setIsCtcLakhs] = useState<boolean>(false);
   const [expenseType, setExpenseType] = useState<"annual" | "monthly">(
     "monthly"
   );
   const [expenseValue, setExpenseValue] = useState<string>("");
-  const [isExpenseLakhs, setIsExpenseLakhs] = useState<boolean>(false);
+  const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false);
   const [result, setResult] = useState<SavingsDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -42,7 +41,7 @@ const SavingsCalculator: React.FC = () => {
       if (isNaN(ctcValueRaw) || ctcValueRaw < 0) {
         setError(
           `Please enter a valid positive number for Annual CTC${
-            isCtcLakhs ? " (Lakhs)" : ""
+            isLakhsInput ? " (Lakhs)" : ""
           }.`
         );
         setIsLoading(false);
@@ -52,16 +51,16 @@ const SavingsCalculator: React.FC = () => {
       if (expenseValue && (isNaN(expValueRaw) || expValueRaw < 0)) {
         setError(
           `Please enter a valid positive number for Expense${
-            isExpenseLakhs ? " (Lakhs)" : ""
+            isLakhsInput ? " (Lakhs)" : ""
           }, or leave blank.`
         );
         setIsLoading(false);
         return;
       }
 
-      // Apply lakhs conversion
-      const ctcValue = isCtcLakhs ? ctcValueRaw * 100000 : ctcValueRaw;
-      const expValue = isExpenseLakhs ? expValueRaw * 100000 : expValueRaw;
+      // Apply lakhs conversion based on single state
+      const ctcValue = isLakhsInput ? ctcValueRaw * 100000 : ctcValueRaw;
+      const expValue = isLakhsInput ? expValueRaw * 100000 : expValueRaw;
 
       const payload: {
         annualCtc: number;
@@ -129,6 +128,24 @@ const SavingsCalculator: React.FC = () => {
       }}
     >
       <h2>Savings Calculator</h2>
+      {/* Single Lakhs Checkbox at the top */}
+      <div style={{ marginBottom: "15px", textAlign: "right" }}>
+        <label
+          htmlFor="componentLakhsCheckboxSavings"
+          style={{ whiteSpace: "nowrap" }}
+        >
+          <input
+            type="checkbox"
+            id="componentLakhsCheckboxSavings"
+            checked={isLakhsInput}
+            onChange={(e) => setIsLakhsInput(e.target.checked)}
+            disabled={isLoading}
+            style={{ marginRight: "5px" }}
+          />
+          Input in Lakhs?
+        </label>
+      </div>
+
       {/* Annual CTC Input */}
       <div style={{ marginBottom: "15px" }}>
         <label htmlFor="savingsAnnualCtc">Annual CTC (INR):</label>
@@ -140,7 +157,7 @@ const SavingsCalculator: React.FC = () => {
             id="savingsAnnualCtc"
             value={annualCtc}
             onChange={(e) => setAnnualCtc(e.target.value)}
-            placeholder={isCtcLakhs ? "e.g., 15" : "e.g., 1500000"}
+            placeholder={isLakhsInput ? "e.g., 15" : "e.g., 1500000"}
             disabled={isLoading}
             style={{
               flexGrow: 1, // Use flexGrow instead of width
@@ -149,17 +166,6 @@ const SavingsCalculator: React.FC = () => {
               marginRight: "10px", // Add margin for spacing
             }}
           />
-          <label htmlFor="ctcLakhsCheckbox" style={{ whiteSpace: "nowrap" }}>
-            <input
-              type="checkbox"
-              id="ctcLakhsCheckbox"
-              checked={isCtcLakhs}
-              onChange={(e) => setIsCtcLakhs(e.target.checked)}
-              disabled={isLoading}
-              style={{ marginRight: "5px" }}
-            />
-            Lakhs?
-          </label>
         </div>
       </div>
 
@@ -184,24 +190,12 @@ const SavingsCalculator: React.FC = () => {
             type="number"
             value={expenseValue}
             onChange={(e) => setExpenseValue(e.target.value)}
-            placeholder={`Enter ${expenseType} expense (optional)`}
+            placeholder={`Enter ${expenseType} expense${
+              isLakhsInput ? " (Lakhs)" : ""
+            } (optional)`}
             disabled={isLoading}
             style={{ flexGrow: 1, padding: "8px", boxSizing: "border-box" }}
           />
-          <label
-            htmlFor="expenseLakhsCheckbox"
-            style={{ whiteSpace: "nowrap", marginLeft: "10px" }}
-          >
-            <input
-              type="checkbox"
-              id="expenseLakhsCheckbox"
-              checked={isExpenseLakhs}
-              onChange={(e) => setIsExpenseLakhs(e.target.checked)}
-              disabled={isLoading}
-              style={{ marginRight: "5px" }}
-            />
-            Lakhs?
-          </label>
         </div>
       </div>
 

@@ -45,13 +45,10 @@ const formatCurrency = (value: number): string => {
 
 const TimeToTargetChart: React.FC = () => {
   const [minCtc, setMinCtc] = useState<string>("1000000"); // Default values
-  const [isMinCtcLakhs, setIsMinCtcLakhs] = useState<boolean>(false); // Lakhs state
   const [maxCtc, setMaxCtc] = useState<string>("3000000");
-  const [isMaxCtcLakhs, setIsMaxCtcLakhs] = useState<boolean>(false); // Lakhs state
   const [monthlyExpense, setMonthlyExpense] = useState<string>("40000");
-  const [isExpenseLakhs, setIsExpenseLakhs] = useState<boolean>(false); // Lakhs state
   const [targetAmount, setTargetAmount] = useState<string>("5000000");
-  const [isTargetLakhs, setIsTargetLakhs] = useState<boolean>(false); // Lakhs state
+  const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false); // Add single state
   const [increment, setIncrement] = useState<string>("500000"); // Increment likely not in Lakhs
 
   const [chartData, setChartData] = useState<any>(null); // State to hold chart data
@@ -83,32 +80,32 @@ const TimeToTargetChart: React.FC = () => {
         const targetValueRaw = parseFloat(targetAmount);
         const incrementValue = parseFloat(increment);
 
-        // Apply Lakhs conversion before validation
-        const minCtcValue = isMinCtcLakhs
+        // Apply Lakhs conversion before validation, based on single state
+        const minCtcValue = isLakhsInput
           ? minCtcValueRaw * 100000
           : minCtcValueRaw;
-        const maxCtcValue = isMaxCtcLakhs
+        const maxCtcValue = isLakhsInput
           ? maxCtcValueRaw * 100000
           : maxCtcValueRaw;
-        const expenseValue = isExpenseLakhs
+        const expenseValue = isLakhsInput
           ? expenseValueRaw * 100000
           : expenseValueRaw;
-        const targetValue = isTargetLakhs
+        const targetValue = isLakhsInput
           ? targetValueRaw * 100000
           : targetValueRaw;
 
         // Frontend validation (similar to backend)
         if (isNaN(minCtcValue) || minCtcValue < 0)
-          throw new Error(`Invalid Min CTC${isMinCtcLakhs ? " (Lakhs)" : ""}`);
+          throw new Error(`Invalid Min CTC${isLakhsInput ? " (Lakhs)" : ""}`);
         if (isNaN(maxCtcValue) || maxCtcValue < 0)
-          throw new Error(`Invalid Max CTC${isMaxCtcLakhs ? " (Lakhs)" : ""}`);
+          throw new Error(`Invalid Max CTC${isLakhsInput ? " (Lakhs)" : ""}`);
         if (isNaN(expenseValue) || expenseValue < 0)
           throw new Error(
-            `Invalid Monthly Expense${isExpenseLakhs ? " (Lakhs)" : ""}`
+            `Invalid Monthly Expense${isLakhsInput ? " (Lakhs)" : ""}`
           );
         if (isNaN(targetValue) || targetValue <= 0)
           throw new Error(
-            `Invalid Target Amount${isTargetLakhs ? " (Lakhs)" : ""}`
+            `Invalid Target Amount${isLakhsInput ? " (Lakhs)" : ""}`
           );
         if (isNaN(incrementValue) || incrementValue <= 0)
           throw new Error("Invalid Increment (must be positive)");
@@ -251,6 +248,31 @@ const TimeToTargetChart: React.FC = () => {
       }}
     >
       <h2>Time to Reach Savings Target</h2>
+      {/* Single Lakhs Checkbox */}
+      <div
+        style={{
+          marginBottom: "15px",
+          textAlign: "right",
+          gridColumn: "1 / -1",
+        }}
+      >
+        {" "}
+        {/* Span across grid */}
+        <label
+          htmlFor="componentLakhsCheckboxTarget"
+          style={{ whiteSpace: "nowrap" }}
+        >
+          <input
+            type="checkbox"
+            id="componentLakhsCheckboxTarget"
+            checked={isLakhsInput}
+            onChange={(e) => setIsLakhsInput(e.target.checked)}
+            style={{ marginRight: "5px" }}
+          />
+          Input in Lakhs?
+        </label>
+      </div>
+
       <div
         style={{
           display: "grid",
@@ -269,7 +291,7 @@ const TimeToTargetChart: React.FC = () => {
               id="minCtcTarget"
               value={minCtc}
               onChange={(e) => setMinCtc(e.target.value)}
-              placeholder={isMinCtcLakhs ? "e.g., 10" : "e.g., 1000000"}
+              placeholder={isLakhsInput ? "e.g., 10" : "e.g., 1000000"}
               style={{
                 flexGrow: 1,
                 padding: "8px",
@@ -277,16 +299,6 @@ const TimeToTargetChart: React.FC = () => {
                 marginRight: "10px", // Add margin for spacing
               }}
             />
-            <label htmlFor="minCtcTargetLakhs" style={{ whiteSpace: "nowrap" }}>
-              <input
-                type="checkbox"
-                id="minCtcTargetLakhs"
-                checked={isMinCtcLakhs}
-                onChange={(e) => setIsMinCtcLakhs(e.target.checked)}
-                style={{ marginRight: "5px" }}
-              />
-              Lakhs?
-            </label>
           </div>
         </div>
         <div>
@@ -299,7 +311,7 @@ const TimeToTargetChart: React.FC = () => {
               id="maxCtcTarget"
               value={maxCtc}
               onChange={(e) => setMaxCtc(e.target.value)}
-              placeholder={isMaxCtcLakhs ? "e.g., 30" : "e.g., 3000000"}
+              placeholder={isLakhsInput ? "e.g., 30" : "e.g., 3000000"}
               style={{
                 flexGrow: 1,
                 padding: "8px",
@@ -307,16 +319,6 @@ const TimeToTargetChart: React.FC = () => {
                 marginRight: "10px",
               }}
             />
-            <label htmlFor="maxCtcTargetLakhs" style={{ whiteSpace: "nowrap" }}>
-              <input
-                type="checkbox"
-                id="maxCtcTargetLakhs"
-                checked={isMaxCtcLakhs}
-                onChange={(e) => setIsMaxCtcLakhs(e.target.checked)}
-                style={{ marginRight: "5px" }}
-              />
-              Lakhs?
-            </label>
           </div>
         </div>
         <div>
@@ -329,7 +331,7 @@ const TimeToTargetChart: React.FC = () => {
               id="monthlyExpenseTarget"
               value={monthlyExpense}
               onChange={(e) => setMonthlyExpense(e.target.value)}
-              placeholder={isExpenseLakhs ? "e.g., 0.4" : "e.g., 40000"}
+              placeholder={isLakhsInput ? "e.g., 0.4" : "e.g., 40000"}
               style={{
                 flexGrow: 1,
                 padding: "8px",
@@ -337,19 +339,6 @@ const TimeToTargetChart: React.FC = () => {
                 marginRight: "10px",
               }}
             />
-            <label
-              htmlFor="monthlyExpenseTargetLakhs"
-              style={{ whiteSpace: "nowrap" }}
-            >
-              <input
-                type="checkbox"
-                id="monthlyExpenseTargetLakhs"
-                checked={isExpenseLakhs}
-                onChange={(e) => setIsExpenseLakhs(e.target.checked)}
-                style={{ marginRight: "5px" }}
-              />
-              Lakhs?
-            </label>
           </div>
         </div>
         <div>
@@ -362,7 +351,7 @@ const TimeToTargetChart: React.FC = () => {
               id="targetAmount"
               value={targetAmount}
               onChange={(e) => setTargetAmount(e.target.value)}
-              placeholder={isTargetLakhs ? "e.g., 50" : "e.g., 5000000"}
+              placeholder={isLakhsInput ? "e.g., 50" : "e.g., 5000000"}
               style={{
                 flexGrow: 1,
                 padding: "8px",
@@ -370,16 +359,6 @@ const TimeToTargetChart: React.FC = () => {
                 marginRight: "10px",
               }}
             />
-            <label htmlFor="targetAmountLakhs" style={{ whiteSpace: "nowrap" }}>
-              <input
-                type="checkbox"
-                id="targetAmountLakhs"
-                checked={isTargetLakhs}
-                onChange={(e) => setIsTargetLakhs(e.target.checked)}
-                style={{ marginRight: "5px" }}
-              />
-              Lakhs?
-            </label>
           </div>
         </div>
         <div>
