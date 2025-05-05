@@ -3,6 +3,10 @@ node_modules/
 dist/
 .DS_Store
 
+# Environment variables - ignore local overrides/secrets
+.env
+.env.local
+
 # Log files
 npm-debug.log*
 yarn-debug.log*
