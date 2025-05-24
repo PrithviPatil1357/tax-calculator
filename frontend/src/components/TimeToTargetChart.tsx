@@ -202,13 +202,15 @@ const TimeToTargetChart: React.FC = () => {
   const { theme } = useTheme();
   const [currentChartOptions, setCurrentChartOptions] = useState<any>({});
 
+  // This useEffect hook handles:
+  // 1. Setting chart options based on the current theme.
+  // Tooltip theming is also handled here within currentChartOptions.
   useEffect(() => {
     const rootStyle = getComputedStyle(document.documentElement);
     const textColor = rootStyle.getPropertyValue('--color-text').trim();
     const textSecondaryColor = rootStyle.getPropertyValue('--color-text-secondary').trim();
     const borderColor = rootStyle.getPropertyValue('--color-border').trim();
-    const chartLineColor = rootStyle.getPropertyValue('--color-chart-primary-line').trim();
-    const chartBgColor = rootStyle.getPropertyValue('--color-chart-primary-bg').trim();
+    // chartLineColor and chartBgColor are removed from here, will be handled in the new hook
 
     setCurrentChartOptions({
       responsive: true,
@@ -246,7 +248,11 @@ const TimeToTargetChart: React.FC = () => {
       scales: {
         y: {
           title: { display: true, text: "Months to Reach Target", color: textSecondaryColor },
-          ticks: { color: textSecondaryColor },
+          ticks: {
+            color: textSecondaryColor,
+            autoSkip: false, // Prevent automatic skipping of ticks
+            maxTicksLimit: 10, // Suggest up to 10 ticks
+          },
           grid: { color: borderColor },
           beginAtZero: true,
         },
@@ -257,18 +263,30 @@ const TimeToTargetChart: React.FC = () => {
         },
       },
     });
+    // Logic to update chartData dataset colors has been moved to a new useEffect
+  }, [theme]); // Rerun only when theme changes
 
-    if (chartData && chartData.datasets) {
-      setChartData((prevChartData: any) => ({
-        ...prevChartData,
-        datasets: prevChartData.datasets.map((dataset: any) => ({
-          ...dataset,
-          borderColor: chartLineColor,
-          backgroundColor: chartBgColor,
-        })),
-      }));
+  // New useEffect hook to update dataset colors when chartData or theme changes
+  useEffect(() => {
+    if (chartData && chartData.datasets && chartData.datasets.length > 0) {
+      const rootStyle = getComputedStyle(document.documentElement);
+      const chartLineColor = rootStyle.getPropertyValue('--color-chart-primary-line').trim() || 'rgb(75, 192, 192)';
+      const chartBgColor = rootStyle.getPropertyValue('--color-chart-primary-bg').trim() || 'rgba(75, 192, 192, 0.5)';
+
+      // Check if colors actually changed to prevent unnecessary re-renders
+      const firstDataset = chartData.datasets[0];
+      if (firstDataset.borderColor !== chartLineColor || firstDataset.backgroundColor !== chartBgColor) {
+        setChartData((prevChartData: any) => ({
+          ...prevChartData,
+          datasets: prevChartData.datasets.map((dataset: any) => ({
+            ...dataset,
+            borderColor: chartLineColor,
+            backgroundColor: chartBgColor,
+          })),
+        }));
+      }
     }
-  }, [theme, chartData]); // Rerun when theme or chartData changes
+  }, [chartData, theme]); // Runs when chartData or theme changes
 
   const handleGenerateChart = () => {
     setFetchTrigger((prev) => prev + 1);
@@ -446,6 +464,7 @@ const TimeToTargetChart: React.FC = () => {
             marginTop: "20px",
             borderTop: "1px solid var(--color-border)",
             paddingTop: "15px",
+            minHeight: '400px', // Make the chart taller
           }}
         >
           <Line options={currentChartOptions} data={chartData} />
