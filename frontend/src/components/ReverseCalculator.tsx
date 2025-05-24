@@ -95,7 +95,7 @@ const ReverseCalculator: React.FC = () => {
     // Apply similar container styling as TakeHomeCalculator
     <div
       style={{
-        border: "1px solid #ccc",
+        border: "1px solid var(--color-border)", // Use CSS variable
         padding: "20px",
         borderRadius: "5px",
         maxWidth: "500px",
@@ -191,12 +191,12 @@ const ReverseCalculator: React.FC = () => {
 
       {/* Apply similar error styling */}
       {error && (
-        <div style={{ color: "red", marginTop: "15px" }}>Error: {error}</div>
+        <div style={{ color: "var(--color-error)", marginTop: "15px" }}>Error: {error}</div> // Use CSS variable
       )}
       {backendMessage && (
         // Use a different style for info messages if needed, or reuse error style with different color
         <div
-          style={{ color: "#17a2b8", marginTop: "15px", fontStyle: "italic" }}
+          style={{ color: "var(--color-info)", marginTop: "15px", fontStyle: "italic" }} // Use CSS variable
         >
           Info: {backendMessage}
         </div>
@@ -207,7 +207,7 @@ const ReverseCalculator: React.FC = () => {
         <div
           style={{
             marginTop: "20px",
-            borderTop: "1px solid #eee",
+            borderTop: "1px solid var(--color-border)", // Use CSS variable
             paddingTop: "15px",
           }}
         >
@@ -216,7 +216,7 @@ const ReverseCalculator: React.FC = () => {
             Estimated Required Annual CTC:{" "}
             <strong>{formatCurrency(calculatedCtc)}</strong>
           </p>
-          <p style={{ fontSize: "0.9em", fontStyle: "italic", color: "#666" }}>
+          <p style={{ fontSize: "0.9em", fontStyle: "italic", color: "var(--color-text-secondary)" }}> // Use CSS variable
             <em>
               (This is an estimate based on the current tax rules and may vary.)
             </em>

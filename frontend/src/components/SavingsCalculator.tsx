@@ -120,7 +120,7 @@ const SavingsCalculator: React.FC = () => {
   return (
     <div
       style={{
-        border: "1px solid #ccc",
+        border: "1px solid var(--color-border)", // Use CSS variable
         padding: "20px",
         borderRadius: "5px",
         maxWidth: "500px",
@@ -208,14 +208,14 @@ const SavingsCalculator: React.FC = () => {
       </button>
 
       {error && (
-        <div style={{ color: "red", marginTop: "15px" }}>Error: {error}</div>
+        <div style={{ color: "var(--color-error)", marginTop: "15px" }}>Error: {error}</div> // Use CSS variable
       )}
 
       {result && (
         <div
           style={{
             marginTop: "20px",
-            borderTop: "1px solid #eee",
+            borderTop: "1px solid var(--color-border)", // Use CSS variable
             paddingTop: "15px",
           }}
         >
@@ -231,7 +231,7 @@ const SavingsCalculator: React.FC = () => {
           <hr
             style={{
               border: "none",
-              borderTop: "1px dashed #ccc",
+              borderTop: "1px dashed var(--color-border)", // Use CSS variable
               margin: "10px 0",
             }}
           />

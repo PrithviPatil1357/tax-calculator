@@ -123,7 +123,7 @@ const SavingsRangeTable: React.FC = () => {
   return (
     <div
       style={{
-        border: "1px solid #ccc",
+        border: "1px solid var(--color-border)", // Use CSS variable
         padding: "20px",
         borderRadius: "5px",
         maxWidth: "700px",
@@ -230,35 +230,39 @@ const SavingsRangeTable: React.FC = () => {
       </button>
 
       {error && (
-        <div style={{ color: "red", marginTop: "15px" }}>Error: {error}</div>
+        <div style={{ color: "var(--color-error)", marginTop: "15px" }}>Error: {error}</div> // Use CSS variable
       )}
 
       {results.length > 0 && (
         <div
           style={{
             marginTop: "20px",
-            borderTop: "1px solid #eee",
+            borderTop: "1px solid var(--color-border)", // Use CSS variable
             paddingTop: "15px",
           }}
         >
           <h3>Results:</h3>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid var(--color-table-border)" }}> {/* Use CSS variable */}
             <thead>
               <tr>
                 <th
                   style={{
-                    border: "1px solid #ddd",
+                    border: "1px solid var(--color-table-border)", // Use CSS variable
                     padding: "8px",
                     textAlign: "left",
+                    backgroundColor: "var(--color-table-header-bg)", // Use CSS variable
+                    color: "var(--color-text)" // Use CSS variable
                   }}
                 >
                   Annual CTC
                 </th>
                 <th
                   style={{
-                    border: "1px solid #ddd",
+                    border: "1px solid var(--color-table-border)", // Use CSS variable
                     padding: "8px",
                     textAlign: "left",
+                    backgroundColor: "var(--color-table-header-bg)", // Use CSS variable
+                    color: "var(--color-text)" // Use CSS variable
                   }}
                 >
                   Monthly Savings
@@ -268,10 +272,10 @@ const SavingsRangeTable: React.FC = () => {
             <tbody>
               {results.map((item, index) => (
                 <tr key={index}>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                  <td style={{ border: "1px solid var(--color-table-border)", padding: "8px", color: "var(--color-text)" }}> {/* Use CSS variable */}
                     {formatCurrency(item.annualCtc)}
                   </td>
-                  <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                  <td style={{ border: "1px solid var(--color-table-border)", padding: "8px", color: "var(--color-text)" }}> {/* Use CSS variable */}
                     {formatCurrency(item.monthlySavings)}
                   </td>
                 </tr>
