@@ -12,10 +12,10 @@
   transition: filter 300ms;
 }
 .logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+  filter: drop-shadow(0 0 2em #646cffaa); /* This color might need to become a variable if it needs to change with theme */
 }
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+  filter: drop-shadow(0 0 2em #61dafbaa); /* Same as above */
 }
 
 @keyframes logo-spin {
@@ -35,8 +35,29 @@
 
 .card {
   padding: 2em;
+  /* If card has specific background or text colors, update them here */
+  /* background-color: var(--color-card-background); */
+  /* color: var(--color-card-text); */
 }
 
 .read-the-docs {
-  color: #888;
+  color: var(--color-text); /* Use a variable, maybe a secondary text color if defined */
+  opacity: 0.7; /* Example to make it less prominent */
+}
+
+/* Styling for Tab Container */
+.tab-container {
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--color-border); /* Use CSS variable */
+  padding-left: 20px;
+}
+
+/* Styling for rendered component container */
+.component-container {
+  padding-top: 20px;
+}
+
+/* General h1 styling - color will be inherited from index.css */
+h1 {
+  color: var(--color-text); /* Ensures h1 color is also themed */
 }

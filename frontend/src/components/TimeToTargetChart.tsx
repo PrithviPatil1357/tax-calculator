@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext"; // Import useTheme
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -161,6 +162,11 @@ const TimeToTargetChart: React.FC = () => {
             );
             setChartData(null);
           } else {
+            // Get computed styles for chart colors
+            const rootStyle = getComputedStyle(document.documentElement);
+            const chartLineColorInitial = rootStyle.getPropertyValue('--color-chart-primary-line').trim() || 'rgb(75, 192, 192)';
+            const chartBgColorInitial = rootStyle.getPropertyValue('--color-chart-primary-bg').trim() || 'rgba(75, 192, 192, 0.5)';
+
             setChartData({
               labels: validResults.map((item) =>
                 formatCurrency(item.annualCtc)
@@ -169,8 +175,8 @@ const TimeToTargetChart: React.FC = () => {
                 {
                   label: "Months to Reach Target",
                   data: validResults.map((item) => item.timeToTargetMonths),
-                  borderColor: "rgb(75, 192, 192)",
-                  backgroundColor: "rgba(75, 192, 192, 0.5)",
+                  borderColor: chartLineColorInitial, // Use computed value
+                  backgroundColor: chartBgColorInitial, // Use computed value
                   tension: 0.1,
                 },
               ],
@@ -191,59 +197,87 @@ const TimeToTargetChart: React.FC = () => {
 
     // Only run fetch when fetchTrigger changes (i.e., button is clicked)
     fetchData();
-  }, [fetchTrigger]); // REMOVED dependencies: minCtc, maxCtc, monthlyExpense, targetAmount, increment
+  }, [fetchTrigger]);
 
-  const handleGenerateChart = () => {
-    // Simply increment the trigger to cause the useEffect to run
-    setFetchTrigger((prev) => prev + 1);
-  };
+  const { theme } = useTheme();
+  const [currentChartOptions, setCurrentChartOptions] = useState<any>({});
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top" as const,
-      },
-      title: {
-        display: true,
-        text: "Time to Reach Savings Target vs. Annual CTC",
-      },
-      tooltip: {
-        callbacks: {
-          label: function (context: any) {
-            let label = context.dataset.label || "";
-            if (label) {
-              label += ": ";
-            }
-            if (context.parsed.y !== null) {
-              label += `${Math.round(context.parsed.y)} months`;
-            }
-            return label;
+  useEffect(() => {
+    const rootStyle = getComputedStyle(document.documentElement);
+    const textColor = rootStyle.getPropertyValue('--color-text').trim();
+    const textSecondaryColor = rootStyle.getPropertyValue('--color-text-secondary').trim();
+    const borderColor = rootStyle.getPropertyValue('--color-border').trim();
+    const chartLineColor = rootStyle.getPropertyValue('--color-chart-primary-line').trim();
+    const chartBgColor = rootStyle.getPropertyValue('--color-chart-primary-bg').trim();
+
+    setCurrentChartOptions({
+      responsive: true,
+      maintainAspectRatio: false, // Added for better responsiveness in some cases
+      plugins: {
+        legend: {
+          position: "top" as const,
+          labels: { color: textColor },
+        },
+        title: {
+          display: true,
+          text: "Time to Reach Savings Target vs. Annual CTC",
+          color: textColor,
+        },
+        tooltip: {
+          titleColor: textColor,
+          bodyColor: textSecondaryColor,
+          backgroundColor: rootStyle.getPropertyValue('--color-background').trim(),
+          borderColor: borderColor,
+          borderWidth: 1,
+          callbacks: {
+            label: function (context: any) {
+              let label = context.dataset.label || "";
+              if (label) {
+                label += ": ";
+              }
+              if (context.parsed.y !== null) {
+                label += `${Math.round(context.parsed.y)} months`;
+              }
+              return label;
+            },
           },
         },
       },
-    },
-    scales: {
-      y: {
-        title: {
-          display: true,
-          text: "Months to Reach Target",
+      scales: {
+        y: {
+          title: { display: true, text: "Months to Reach Target", color: textSecondaryColor },
+          ticks: { color: textSecondaryColor },
+          grid: { color: borderColor },
+          beginAtZero: true,
         },
-        beginAtZero: true,
-      },
-      x: {
-        title: {
-          display: true,
-          text: "Annual CTC",
+        x: {
+          title: { display: true, text: "Annual CTC", color: textSecondaryColor },
+          ticks: { color: textSecondaryColor },
+          grid: { color: borderColor },
         },
       },
-    },
+    });
+
+    if (chartData && chartData.datasets) {
+      setChartData((prevChartData: any) => ({
+        ...prevChartData,
+        datasets: prevChartData.datasets.map((dataset: any) => ({
+          ...dataset,
+          borderColor: chartLineColor,
+          backgroundColor: chartBgColor,
+        })),
+      }));
+    }
+  }, [theme, chartData]); // Rerun when theme or chartData changes
+
+  const handleGenerateChart = () => {
+    setFetchTrigger((prev) => prev + 1);
   };
 
   return (
     <div
       style={{
-        border: "1px solid #ccc",
+        border: "1px solid var(--color-border)",
         padding: "20px",
         borderRadius: "5px",
         maxWidth: "800px",
@@ -403,18 +437,18 @@ const TimeToTargetChart: React.FC = () => {
       </button>
 
       {error && (
-        <div style={{ color: "red", marginTop: "15px" }}>Error: {error}</div>
+        <div style={{ color: "var(--color-error)", marginTop: "15px" }}>Error: {error}</div>
       )}
 
-      {chartData && (
+      {chartData && Object.keys(currentChartOptions).length > 0 && (
         <div
           style={{
             marginTop: "20px",
-            borderTop: "1px solid #eee",
+            borderTop: "1px solid var(--color-border)",
             paddingTop: "15px",
           }}
         >
-          <Line options={chartOptions} data={chartData} />
+          <Line options={currentChartOptions} data={chartData} />
         </div>
       )}
       {!chartData &&
@@ -425,7 +459,7 @@ const TimeToTargetChart: React.FC = () => {
         monthlyExpense &&
         targetAmount &&
         increment && (
-          <div style={{ marginTop: "15px", color: "grey" }}>
+          <div style={{ marginTop: "15px", color: "var(--color-text-secondary)" }}>
             Enter values and click Generate Chart.
           </div>
         )}

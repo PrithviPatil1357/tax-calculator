@@ -5,11 +5,13 @@ import SavingsCalculator from "./components/SavingsCalculator";
 import SavingsRangeTable from "./components/SavingsRangeTable";
 import TimeToTargetChart from "./components/TimeToTargetChart";
 import ReverseCalculator from "./components/ReverseCalculator";
+import { ThemeProvider, useTheme } from './contexts/ThemeContext'; // Add this
 
-type Tab = "takeHome" | "savings" | "savingsRange" | "timeToTarget" | "reverse";
-
-function App() {
+// Existing App function becomes AppContent
+function AppContent() {
+  type Tab = "takeHome" | "savings" | "savingsRange" | "timeToTarget" | "reverse"; // Moved Tab type here
   const [activeTab, setActiveTab] = useState<Tab>("takeHome");
+  const { theme, toggleTheme } = useTheme(); // Get theme and toggleTheme from context
 
   const renderComponent = () => {
     switch (activeTab) {
@@ -32,10 +34,14 @@ function App() {
   const tabButtonStyle = (tabName: Tab): React.CSSProperties => ({
     padding: "10px 15px",
     cursor: "pointer",
-    border: "1px solid #ccc",
-    borderBottom: activeTab === tabName ? "none" : "1px solid #ccc",
-    backgroundColor: activeTab === tabName ? "#007BFF" : "#f0f0f0",
-    color: activeTab === tabName ? "white" : "#333",
+    border: "1px solid var(--color-border)", // Use CSS variable
+    borderBottom: activeTab === tabName ? "none" : "1px solid var(--color-border)", // Use CSS variable
+    backgroundColor: activeTab === tabName 
+      ? "var(--color-tab-active-bg)" // Use CSS variable
+      : "var(--color-tab-inactive-bg)", // Use CSS variable
+    color: activeTab === tabName 
+      ? "var(--color-tab-active-text)" // Use CSS variable
+      : "var(--color-tab-inactive-text)", // Use CSS variable
     marginRight: "5px",
     borderTopLeftRadius: "5px",
     borderTopRightRadius: "5px",
@@ -44,15 +50,29 @@ function App() {
 
   return (
     <>
+      {/* Theme Toggle Button */}
+      <button 
+        onClick={toggleTheme} 
+        style={{ 
+          position: 'absolute', 
+          top: '10px', 
+          right: '10px',
+          padding: '8px 12px',
+          backgroundColor: "var(--color-button-background)", // Use CSS variable
+          color: "var(--color-text)", // Use CSS variable
+          border: "1px solid var(--color-border)", // Use CSS variable
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Toggle Theme ({theme === 'light' ? 'Dark' : 'Light'} Mode)
+      </button>
+
       <h1>Tax Calculator (New Regime FY 2025-26)</h1>
 
       {/* Tab Buttons */}
       <div
-        style={{
-          marginBottom: "0",
-          borderBottom: "1px solid #ccc",
-          paddingLeft: "20px",
-        }}
+        className="tab-container" // Added class for styling
       >
         <button
           style={tabButtonStyle("takeHome")}
@@ -87,8 +107,17 @@ function App() {
       </div>
 
       {/* Render Active Component */}
-      <div style={{ paddingTop: "20px" }}>{renderComponent()}</div>
+      <div className="component-container">{renderComponent()}</div> 
     </>
+  );
+}
+
+// New App component that wraps AppContent with ThemeProvider
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
