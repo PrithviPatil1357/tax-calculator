@@ -52,9 +52,7 @@ const TimeToTargetChart: React.FC = () => {
   const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false); // Add single state
   const [increment, setIncrement] = useState<string>("");
   const [currentInvestments, setCurrentInvestments] = useState<string>("");
-  const [lumpsumExpenses, setLumpsumExpenses] = useState<string>("");
-  const [monthlySipAmount, setMonthlySipAmount] = useState<string>("");
-  const [sipCagr, setSipCagr] = useState<string>("");
+  const [investmentCagr, setInvestmentCagr] = useState<string>("");
 
   const [chartData, setChartData] = useState<any>(null); // State to hold chart data
   const [error, setError] = useState<string | null>(null);
@@ -86,10 +84,9 @@ const TimeToTargetChart: React.FC = () => {
         const targetValueRaw = parseFloat(targetAmount);
         const incrementValueRaw = parseFloat(increment);
         const currentInvestmentsRaw = parseFloat(currentInvestments);
-        const lumpsumExpensesRaw = lumpsumExpenses ? parseFloat(lumpsumExpenses) : 0;
-        const monthlySipAmountRaw = monthlySipAmount ? parseFloat(monthlySipAmount) : 0;
-        const sipCagrRaw = sipCagr ? parseFloat(sipCagr) : 0;
-
+        const investmentCagrRaw = investmentCagr
+          ? parseFloat(investmentCagr)
+          : 0;
 
         // Apply Lakhs conversion before validation, based on single state
         const minCtcValue = isLakhsInput
@@ -110,13 +107,7 @@ const TimeToTargetChart: React.FC = () => {
         const currentInvestmentsValue = isLakhsInput
           ? currentInvestmentsRaw * 100000
           : currentInvestmentsRaw;
-        const lumpsumExpensesValue = isLakhsInput
-          ? lumpsumExpensesRaw * 100000
-          : lumpsumExpensesRaw;
-        const monthlySipAmountValue = isLakhsInput
-          ? monthlySipAmountRaw * 100000
-          : monthlySipAmountRaw;
-        // No lakhs conversion for sipCagrRaw
+        // No lakhs conversion for investmentCagrRaw
 
         // Frontend validation (similar to backend)
         if (isNaN(minCtcValue) || minCtcValue < 0)
@@ -135,14 +126,18 @@ const TimeToTargetChart: React.FC = () => {
           throw new Error("Invalid Increment (must be positive)");
         if (minCtcValue > maxCtcValue) throw new Error("Min CTC > Max CTC");
         if (isNaN(currentInvestmentsValue) || currentInvestmentsValue < 0)
-          throw new Error(`Invalid Current Investments${isLakhsInput ? " (Lakhs)" : ""}`);
-        if (isNaN(lumpsumExpensesValue) || lumpsumExpensesValue < 0)
-            throw new Error(`Invalid Lumpsum Expenses${isLakhsInput ? " (Lakhs)" : ""}`);
-        if (isNaN(monthlySipAmountValue) || monthlySipAmountValue < 0)
-            throw new Error(`Invalid Monthly SIP Amount${isLakhsInput ? " (Lakhs)" : ""}`);
-        if (isNaN(sipCagrRaw) || sipCagrRaw < 0 || sipCagrRaw > 200) // Assuming 200% is a generous upper limit
-            throw new Error("Invalid SIP CAGR (%). Please enter a value between 0 and 200.");
-
+          throw new Error(
+            `Invalid Current Investments${isLakhsInput ? " (Lakhs)" : ""}`
+          );
+        if (
+          isNaN(investmentCagrRaw) ||
+          investmentCagrRaw < 0 ||
+          investmentCagrRaw > 200
+        )
+          // Assuming 200% is a generous upper limit
+          throw new Error(
+            "Invalid Investment CAGR (%). Please enter a value between 0 and 200."
+          );
 
         // Construct API URL using environment variable
         const apiUrl = `${
@@ -163,9 +158,7 @@ const TimeToTargetChart: React.FC = () => {
               targetAmount: targetValue,
               increment: incrementValue,
               currentInvestments: currentInvestmentsValue,
-              lumpsumExpenses: lumpsumExpensesValue,
-              monthlySipAmount: monthlySipAmountValue,
-              sipCagr: sipCagrRaw / 100, // Convert percentage to decimal
+              investmentCagr: investmentCagrRaw / 100, // Convert percentage to decimal
             }),
           }
         );
@@ -197,8 +190,12 @@ const TimeToTargetChart: React.FC = () => {
           } else {
             // Get computed styles for chart colors
             const rootStyle = getComputedStyle(document.documentElement);
-            const chartLineColorInitial = rootStyle.getPropertyValue('--color-chart-primary-line').trim() || 'rgb(75, 192, 192)';
-            const chartBgColorInitial = rootStyle.getPropertyValue('--color-chart-primary-bg').trim() || 'rgba(75, 192, 192, 0.5)';
+            const chartLineColorInitial =
+              rootStyle.getPropertyValue("--color-chart-primary-line").trim() ||
+              "rgb(75, 192, 192)";
+            const chartBgColorInitial =
+              rootStyle.getPropertyValue("--color-chart-primary-bg").trim() ||
+              "rgba(75, 192, 192, 0.5)";
 
             setChartData({
               labels: validResults.map((item) =>
@@ -240,9 +237,11 @@ const TimeToTargetChart: React.FC = () => {
   // Tooltip theming is also handled here within currentChartOptions.
   useEffect(() => {
     const rootStyle = getComputedStyle(document.documentElement);
-    const textColor = rootStyle.getPropertyValue('--color-text').trim();
-    const textSecondaryColor = rootStyle.getPropertyValue('--color-text-secondary').trim();
-    const borderColor = rootStyle.getPropertyValue('--color-border').trim();
+    const textColor = rootStyle.getPropertyValue("--color-text").trim();
+    const textSecondaryColor = rootStyle
+      .getPropertyValue("--color-text-secondary")
+      .trim();
+    const borderColor = rootStyle.getPropertyValue("--color-border").trim();
     // chartLineColor and chartBgColor are removed from here, will be handled in the new hook
 
     setCurrentChartOptions({
@@ -261,7 +260,9 @@ const TimeToTargetChart: React.FC = () => {
         tooltip: {
           titleColor: textColor,
           bodyColor: textSecondaryColor,
-          backgroundColor: rootStyle.getPropertyValue('--color-background').trim(),
+          backgroundColor: rootStyle
+            .getPropertyValue("--color-background")
+            .trim(),
           borderColor: borderColor,
           borderWidth: 1,
           callbacks: {
@@ -280,7 +281,11 @@ const TimeToTargetChart: React.FC = () => {
       },
       scales: {
         y: {
-          title: { display: true, text: "Months to Reach Target", color: textSecondaryColor },
+          title: {
+            display: true,
+            text: "Months to Reach Target",
+            color: textSecondaryColor,
+          },
           ticks: {
             color: textSecondaryColor,
             autoSkip: false, // Prevent automatic skipping of ticks
@@ -290,7 +295,11 @@ const TimeToTargetChart: React.FC = () => {
           beginAtZero: true,
         },
         x: {
-          title: { display: true, text: "Annual CTC", color: textSecondaryColor },
+          title: {
+            display: true,
+            text: "Annual CTC",
+            color: textSecondaryColor,
+          },
           ticks: { color: textSecondaryColor },
           grid: { color: borderColor },
         },
@@ -303,12 +312,19 @@ const TimeToTargetChart: React.FC = () => {
   useEffect(() => {
     if (chartData && chartData.datasets && chartData.datasets.length > 0) {
       const rootStyle = getComputedStyle(document.documentElement);
-      const chartLineColor = rootStyle.getPropertyValue('--color-chart-primary-line').trim() || 'rgb(75, 192, 192)';
-      const chartBgColor = rootStyle.getPropertyValue('--color-chart-primary-bg').trim() || 'rgba(75, 192, 192, 0.5)';
+      const chartLineColor =
+        rootStyle.getPropertyValue("--color-chart-primary-line").trim() ||
+        "rgb(75, 192, 192)";
+      const chartBgColor =
+        rootStyle.getPropertyValue("--color-chart-primary-bg").trim() ||
+        "rgba(75, 192, 192, 0.5)";
 
       // Check if colors actually changed to prevent unnecessary re-renders
       const firstDataset = chartData.datasets[0];
-      if (firstDataset.borderColor !== chartLineColor || firstDataset.backgroundColor !== chartBgColor) {
+      if (
+        firstDataset.borderColor !== chartLineColor ||
+        firstDataset.backgroundColor !== chartBgColor
+      ) {
         setChartData((prevChartData: any) => ({
           ...prevChartData,
           datasets: prevChartData.datasets.map((dataset: any) => ({
@@ -460,44 +476,33 @@ const TimeToTargetChart: React.FC = () => {
             value={currentInvestments}
             onChange={(e) => setCurrentInvestments(e.target.value)}
             placeholder={isLakhsInput ? "e.g., 20" : "e.g., 2000000"}
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
+            style={{
+              width: "100%",
+              padding: "8px",
+              boxSizing: "border-box",
+              marginTop: "5px",
+            }}
           />
         </div>
         <div>
-          <label htmlFor="lumpsumExpenses">Lumpsum Expenses (INR) (Optional):</label>
+          <label htmlFor="investmentCagr">
+            Expected Investment CAGR (%) (Optional):
+          </label>
           <input
             type="number"
-            id="lumpsumExpenses"
-            value={lumpsumExpenses}
-            onChange={(e) => setLumpsumExpenses(e.target.value)}
-            placeholder={isLakhsInput ? "e.g., 1" : "e.g., 100000"}
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
-          />
-        </div>
-        {/* Row 4 */}
-        <div>
-          <label htmlFor="monthlySipAmount">Monthly SIP (INR) (Optional):</label>
-          <input
-            type="number"
-            id="monthlySipAmount"
-            value={monthlySipAmount}
-            onChange={(e) => setMonthlySipAmount(e.target.value)}
-            placeholder={isLakhsInput ? "e.g., 0.1" : "e.g., 10000"}
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
-          />
-        </div>
-        <div>
-          <label htmlFor="sipCagr">Expected SIP CAGR (%) (Optional):</label>
-          <input
-            type="number"
-            id="sipCagr"
-            value={sipCagr}
-            onChange={(e) => setSipCagr(e.target.value)}
+            id="investmentCagr"
+            value={investmentCagr}
+            onChange={(e) => setInvestmentCagr(e.target.value)}
             placeholder="e.g., 12 (for 12%)"
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
+            style={{
+              width: "100%",
+              padding: "8px",
+              boxSizing: "border-box",
+              marginTop: "5px",
+            }}
           />
         </div>
-        {/* Row 5 - Increment can be here or in Row 3 if preferred */}
+        {/* Row 4 - Increment */}
         <div>
           <label htmlFor="incrementTarget">Increment (INR):</label>
           <input
@@ -538,7 +543,9 @@ const TimeToTargetChart: React.FC = () => {
       </button>
 
       {error && (
-        <div style={{ color: "var(--color-error)", marginTop: "15px" }}>Error: {error}</div>
+        <div style={{ color: "var(--color-error)", marginTop: "15px" }}>
+          Error: {error}
+        </div>
       )}
 
       {chartData && Object.keys(currentChartOptions).length > 0 && (
@@ -547,7 +554,7 @@ const TimeToTargetChart: React.FC = () => {
             marginTop: "20px",
             borderTop: "1px solid var(--color-border)",
             paddingTop: "15px",
-            minHeight: '400px', // Make the chart taller
+            minHeight: "400px", // Make the chart taller
           }}
         >
           <Line options={currentChartOptions} data={chartData} />
@@ -562,7 +569,9 @@ const TimeToTargetChart: React.FC = () => {
         targetAmount &&
         increment &&
         currentInvestments && ( // Added currentInvestments
-          <div style={{ marginTop: "15px", color: "var(--color-text-secondary)" }}>
+          <div
+            style={{ marginTop: "15px", color: "var(--color-text-secondary)" }}
+          >
             Enter values and click Generate Chart.
           </div>
         )}

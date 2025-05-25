@@ -111,11 +111,9 @@ public class TaxCalculationService {
         double targetAmount = request.getTargetAmount();
         double increment = (request.getIncrement() != null && request.getIncrement() > 0) ? request.getIncrement() : 500000.0;
 
-        // Retrieve new fields with defaults
+        // Retrieve investment fields with defaults
         double currentInvestments = Optional.ofNullable(request.getCurrentInvestments()).orElse(0.0);
-        double lumpsumExpenses = Optional.ofNullable(request.getLumpsumExpenses()).orElse(0.0);
-        double monthlySipAmount = Optional.ofNullable(request.getMonthlySipAmount()).orElse(0.0);
-        double sipCagr = Optional.ofNullable(request.getSipCagr()).orElse(0.0); // Annual CAGR
+        double investmentCagr = Optional.ofNullable(request.getInvestmentCagr()).orElse(0.0); // Annual CAGR
 
         // Basic validation for core parameters
         if (minCtc > maxCtc || monthlyExpense < 0 || minCtc < 0 || targetAmount <= 0) {
@@ -130,8 +128,8 @@ public class TaxCalculationService {
             double monthlyTakeHome = takeHomeDetails.getMonthlyTakeHome();
             double monthlyNetSavings = monthlyTakeHome - monthlyExpense;
 
-            // New Check: Income vs. Outgoings (Expenses + SIP vs TakeHome)
-            if (monthlyExpense + monthlySipAmount > monthlyTakeHome) {
+            // Check if monthly expenses exceed take-home (no disposable income for investments)
+            if (monthlyExpense >= monthlyTakeHome) {
                 results.add(TimeToTargetResult.builder()
                         .annualCtc(currentCtc)
                         .timeToTargetMonths(Double.POSITIVE_INFINITY)
@@ -150,30 +148,28 @@ public class TaxCalculationService {
             }
 
             double iterationNetWorth = currentInvestments;
-            if (lumpsumExpenses > 0) {
-                iterationNetWorth -= lumpsumExpenses;
-            }
 
             Double timeMonths;
 
             if (iterationNetWorth >= targetAmount) {
                 timeMonths = 0.0;
-            } else if (monthlyNetSavings + monthlySipAmount <= 0 && iterationNetWorth < targetAmount && sipCagr <= 0) {
+            } else if (monthlyNetSavings <= 0 && iterationNetWorth < targetAmount && investmentCagr <= 0) {
                 timeMonths = Double.POSITIVE_INFINITY;
             } else {
                 double tempNetWorth = iterationNetWorth;
                 int months = 0;
-                double monthlySipGrowthRate = sipCagr / 12.0; // Monthly growth rate from annual CAGR
+                double monthlyInvestmentGrowthRate = investmentCagr / 12.0; // Monthly growth rate from annual CAGR
                 Double previousIterationTempNetWorth = null; // For stagnation check
 
                 while (tempNetWorth < targetAmount) {
                     months++;
                     previousIterationTempNetWorth = tempNetWorth;
 
-                    if (sipCagr > 0) {
-                        tempNetWorth += tempNetWorth * monthlySipGrowthRate;
+                    // Apply growth to existing investments
+                    if (investmentCagr > 0) {
+                        tempNetWorth += tempNetWorth * monthlyInvestmentGrowthRate;
                     }
-                    tempNetWorth += monthlySipAmount;
+                    // Add all disposable income as new investments
                     tempNetWorth += monthlyNetSavings;
 
                     if (months > 12000) { // Safety break: 1000 years
