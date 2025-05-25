@@ -51,6 +51,10 @@ const TimeToTargetChart: React.FC = () => {
   const [targetAmount, setTargetAmount] = useState<string>("");
   const [isLakhsInput, setIsLakhsInput] = useState<boolean>(false); // Add single state
   const [increment, setIncrement] = useState<string>("");
+  const [currentInvestments, setCurrentInvestments] = useState<string>("");
+  const [lumpsumExpenses, setLumpsumExpenses] = useState<string>("");
+  const [monthlySipAmount, setMonthlySipAmount] = useState<string>("");
+  const [sipCagr, setSipCagr] = useState<string>("");
 
   const [chartData, setChartData] = useState<any>(null); // State to hold chart data
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +69,8 @@ const TimeToTargetChart: React.FC = () => {
         !maxCtc ||
         !monthlyExpense ||
         !targetAmount ||
-        !increment
+        !increment ||
+        !currentInvestments // Added currentInvestments as mandatory
       ) {
         setChartData(null); // Clear chart if inputs are incomplete
         return;
@@ -80,6 +85,11 @@ const TimeToTargetChart: React.FC = () => {
         const expenseValueRaw = parseFloat(monthlyExpense);
         const targetValueRaw = parseFloat(targetAmount);
         const incrementValueRaw = parseFloat(increment);
+        const currentInvestmentsRaw = parseFloat(currentInvestments);
+        const lumpsumExpensesRaw = lumpsumExpenses ? parseFloat(lumpsumExpenses) : 0;
+        const monthlySipAmountRaw = monthlySipAmount ? parseFloat(monthlySipAmount) : 0;
+        const sipCagrRaw = sipCagr ? parseFloat(sipCagr) : 0;
+
 
         // Apply Lakhs conversion before validation, based on single state
         const minCtcValue = isLakhsInput
@@ -97,6 +107,16 @@ const TimeToTargetChart: React.FC = () => {
         const incrementValue = isLakhsInput
           ? incrementValueRaw * 100000
           : incrementValueRaw;
+        const currentInvestmentsValue = isLakhsInput
+          ? currentInvestmentsRaw * 100000
+          : currentInvestmentsRaw;
+        const lumpsumExpensesValue = isLakhsInput
+          ? lumpsumExpensesRaw * 100000
+          : lumpsumExpensesRaw;
+        const monthlySipAmountValue = isLakhsInput
+          ? monthlySipAmountRaw * 100000
+          : monthlySipAmountRaw;
+        // No lakhs conversion for sipCagrRaw
 
         // Frontend validation (similar to backend)
         if (isNaN(minCtcValue) || minCtcValue < 0)
@@ -114,6 +134,15 @@ const TimeToTargetChart: React.FC = () => {
         if (isNaN(incrementValue) || incrementValue <= 0)
           throw new Error("Invalid Increment (must be positive)");
         if (minCtcValue > maxCtcValue) throw new Error("Min CTC > Max CTC");
+        if (isNaN(currentInvestmentsValue) || currentInvestmentsValue < 0)
+          throw new Error(`Invalid Current Investments${isLakhsInput ? " (Lakhs)" : ""}`);
+        if (isNaN(lumpsumExpensesValue) || lumpsumExpensesValue < 0)
+            throw new Error(`Invalid Lumpsum Expenses${isLakhsInput ? " (Lakhs)" : ""}`);
+        if (isNaN(monthlySipAmountValue) || monthlySipAmountValue < 0)
+            throw new Error(`Invalid Monthly SIP Amount${isLakhsInput ? " (Lakhs)" : ""}`);
+        if (isNaN(sipCagrRaw) || sipCagrRaw < 0 || sipCagrRaw > 200) // Assuming 200% is a generous upper limit
+            throw new Error("Invalid SIP CAGR (%). Please enter a value between 0 and 200.");
+
 
         // Construct API URL using environment variable
         const apiUrl = `${
@@ -133,6 +162,10 @@ const TimeToTargetChart: React.FC = () => {
               monthlyExpense: expenseValue,
               targetAmount: targetValue,
               increment: incrementValue,
+              currentInvestments: currentInvestmentsValue,
+              lumpsumExpenses: lumpsumExpensesValue,
+              monthlySipAmount: monthlySipAmountValue,
+              sipCagr: sipCagrRaw / 100, // Convert percentage to decimal
             }),
           }
         );
@@ -336,6 +369,7 @@ const TimeToTargetChart: React.FC = () => {
           marginBottom: "15px",
         }}
       >
+        {/* Row 1 */}
         <div>
           <label htmlFor="minCtcTarget">Min CTC (INR):</label>
           <div
@@ -376,6 +410,7 @@ const TimeToTargetChart: React.FC = () => {
             />
           </div>
         </div>
+        {/* Row 2 */}
         <div>
           <label htmlFor="monthlyExpenseTarget">Monthly Expense (INR):</label>
           <div
@@ -416,6 +451,53 @@ const TimeToTargetChart: React.FC = () => {
             />
           </div>
         </div>
+        {/* Row 3 */}
+        <div>
+          <label htmlFor="currentInvestments">Current Investments (INR):</label>
+          <input
+            type="number"
+            id="currentInvestments"
+            value={currentInvestments}
+            onChange={(e) => setCurrentInvestments(e.target.value)}
+            placeholder={isLakhsInput ? "e.g., 20" : "e.g., 2000000"}
+            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
+          />
+        </div>
+        <div>
+          <label htmlFor="lumpsumExpenses">Lumpsum Expenses (INR) (Optional):</label>
+          <input
+            type="number"
+            id="lumpsumExpenses"
+            value={lumpsumExpenses}
+            onChange={(e) => setLumpsumExpenses(e.target.value)}
+            placeholder={isLakhsInput ? "e.g., 1" : "e.g., 100000"}
+            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
+          />
+        </div>
+        {/* Row 4 */}
+        <div>
+          <label htmlFor="monthlySipAmount">Monthly SIP (INR) (Optional):</label>
+          <input
+            type="number"
+            id="monthlySipAmount"
+            value={monthlySipAmount}
+            onChange={(e) => setMonthlySipAmount(e.target.value)}
+            placeholder={isLakhsInput ? "e.g., 0.1" : "e.g., 10000"}
+            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
+          />
+        </div>
+        <div>
+          <label htmlFor="sipCagr">Expected SIP CAGR (%) (Optional):</label>
+          <input
+            type="number"
+            id="sipCagr"
+            value={sipCagr}
+            onChange={(e) => setSipCagr(e.target.value)}
+            placeholder="e.g., 12 (for 12%)"
+            style={{ width: "100%", padding: "8px", boxSizing: "border-box", marginTop: "5px" }}
+          />
+        </div>
+        {/* Row 5 - Increment can be here or in Row 3 if preferred */}
         <div>
           <label htmlFor="incrementTarget">Increment (INR):</label>
           <input
@@ -443,7 +525,8 @@ const TimeToTargetChart: React.FC = () => {
           !maxCtc ||
           !monthlyExpense ||
           !targetAmount ||
-          !increment
+          !increment ||
+          !currentInvestments // Added currentInvestments as mandatory
         }
         style={{
           padding: "10px 15px",
@@ -477,7 +560,8 @@ const TimeToTargetChart: React.FC = () => {
         maxCtc &&
         monthlyExpense &&
         targetAmount &&
-        increment && (
+        increment &&
+        currentInvestments && ( // Added currentInvestments
           <div style={{ marginTop: "15px", color: "var(--color-text-secondary)" }}>
             Enter values and click Generate Chart.
           </div>
