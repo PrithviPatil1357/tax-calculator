@@ -164,7 +164,7 @@ public class TaxCalculationService {
                 double tempNetWorth = iterationNetWorth;
                 int months = 0;
                 double monthlySipGrowthRate = sipCagr / 12.0; // Monthly growth rate from annual CAGR
-                Double previousIterationTempNetWorth; // For stagnation check
+                Double previousIterationTempNetWorth = null; // For stagnation check
 
                 while (tempNetWorth < targetAmount) {
                     months++;
@@ -193,7 +193,7 @@ public class TaxCalculationService {
                     // timeMonths should already be Double.POSITIVE_INFINITY from the checks within the loop
                     // This else branch handles the case where the loop finishes (e.g. due to stagnation)
                     // but timeMonths wasn't explicitly set within the loop for some reason (defensive coding)
-                    if (months > 12000 || (tempNetWorth <= previousIterationTempNetWorth && tempNetWorth < targetAmount)) {
+                    if (months > 12000 || (previousIterationTempNetWorth != null && tempNetWorth <= previousIterationTempNetWorth && tempNetWorth < targetAmount)) {
                          timeMonths = Double.POSITIVE_INFINITY;
                     } else {
                         // This case should ideally not be hit if logic is correct,
