@@ -10,7 +10,5 @@ public class TimeToTargetRequest {
     private double targetAmount;
     private Double increment;
     private Double currentInvestments;
-    private Double lumpsumExpenses;
-    private Double monthlySipAmount;
-    private Double sipCagr;
+    private Double investmentCagr; // Annual CAGR for investments
 } 
