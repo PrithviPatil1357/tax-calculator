@@ -9,4 +9,8 @@ public class TimeToTargetRequest {
     private double monthlyExpense;
     private double targetAmount;
     private Double increment;
+    private Double currentInvestments;
+    private Double lumpsumExpenses;
+    private Double monthlySipAmount;
+    private Double sipCagr;
 } 

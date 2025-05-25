@@ -4,6 +4,7 @@ import com.example.taxcalculator.dto.*;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TaxCalculationService {
@@ -108,37 +109,106 @@ public class TaxCalculationService {
         double maxCtc = request.getMaxCtc();
         double monthlyExpense = request.getMonthlyExpense();
         double targetAmount = request.getTargetAmount();
-        // Use provided increment, default to 5L if null or invalid
         double increment = (request.getIncrement() != null && request.getIncrement() > 0) ? request.getIncrement() : 500000.0;
 
-        // Basic validation
+        // Retrieve new fields with defaults
+        double currentInvestments = Optional.ofNullable(request.getCurrentInvestments()).orElse(0.0);
+        double lumpsumExpenses = Optional.ofNullable(request.getLumpsumExpenses()).orElse(0.0);
+        double monthlySipAmount = Optional.ofNullable(request.getMonthlySipAmount()).orElse(0.0);
+        double sipCagr = Optional.ofNullable(request.getSipCagr()).orElse(0.0); // Annual CAGR
+
+        // Basic validation for core parameters
         if (minCtc > maxCtc || monthlyExpense < 0 || minCtc < 0 || targetAmount <= 0) {
-            return TimeToTargetResponse.builder().results(results).build(); // Return empty for invalid input
+            return TimeToTargetResponse.builder().results(results).build();
         }
 
         double currentCtc = minCtc;
         while (true) {
-            // Calculate take-home for the current CTC
             CtcRequest ctcRequest = new CtcRequest();
             ctcRequest.setAnnualCtc(currentCtc);
             TakeHomeResponse takeHomeDetails = calculateTakeHome(ctcRequest);
+            double monthlyTakeHome = takeHomeDetails.getMonthlyTakeHome();
+            double monthlyNetSavings = monthlyTakeHome - monthlyExpense;
 
-            // Calculate monthly savings
-            double monthlySaving = takeHomeDetails.getMonthlyTakeHome() - monthlyExpense;
+            // New Check: Income vs. Outgoings (Expenses + SIP vs TakeHome)
+            if (monthlyExpense + monthlySipAmount > monthlyTakeHome) {
+                results.add(TimeToTargetResult.builder()
+                        .annualCtc(currentCtc)
+                        .timeToTargetMonths(Double.POSITIVE_INFINITY)
+                        .build());
 
-            Double timeMonths = null; // Default to null (unreachable)
-            if (monthlySaving > 0) {
-                // Calculate months and use ceil to get the full month count needed
-                timeMonths = Math.ceil(targetAmount / monthlySaving);
+                // Advance currentCtc and continue to the next iteration
+                if (currentCtc >= maxCtc) {
+                    break; // Exit loop if maxCtc is reached
+                }
+                double nextCtc = currentCtc + increment;
+                if (nextCtc > maxCtc && currentCtc < maxCtc) {
+                    nextCtc = maxCtc; // Ensure the last iteration is maxCtc
+                }
+                currentCtc = nextCtc;
+                continue; // Skip simulation for this CTC
             }
 
-            // Add result to the list
+            double iterationNetWorth = currentInvestments;
+            if (lumpsumExpenses > 0) {
+                iterationNetWorth -= lumpsumExpenses;
+            }
+
+            Double timeMonths;
+
+            if (iterationNetWorth >= targetAmount) {
+                timeMonths = 0.0;
+            } else if (monthlyNetSavings + monthlySipAmount <= 0 && iterationNetWorth < targetAmount && sipCagr <= 0) {
+                timeMonths = Double.POSITIVE_INFINITY;
+            } else {
+                double tempNetWorth = iterationNetWorth;
+                int months = 0;
+                double monthlySipGrowthRate = sipCagr / 12.0; // Monthly growth rate from annual CAGR
+                Double previousIterationTempNetWorth; // For stagnation check
+
+                while (tempNetWorth < targetAmount) {
+                    months++;
+                    previousIterationTempNetWorth = tempNetWorth;
+
+                    if (sipCagr > 0) {
+                        tempNetWorth += tempNetWorth * monthlySipGrowthRate;
+                    }
+                    tempNetWorth += monthlySipAmount;
+                    tempNetWorth += monthlyNetSavings;
+
+                    if (months > 12000) { // Safety break: 1000 years
+                        timeMonths = Double.POSITIVE_INFINITY;
+                        break;
+                    }
+                    if (tempNetWorth <= previousIterationTempNetWorth && tempNetWorth < targetAmount) { // Stagnation check
+                        timeMonths = Double.POSITIVE_INFINITY;
+                        break;
+                    }
+                }
+
+                // If loop exited due to safety break, timeMonths is already set. Otherwise, set it now.
+                if (tempNetWorth >= targetAmount) { // Check if target was reached
+                   timeMonths = (double) months;
+                } else { // If loop exited due to safety break before reaching target
+                    // timeMonths should already be Double.POSITIVE_INFINITY from the checks within the loop
+                    // This else branch handles the case where the loop finishes (e.g. due to stagnation)
+                    // but timeMonths wasn't explicitly set within the loop for some reason (defensive coding)
+                    if (months > 12000 || (tempNetWorth <= previousIterationTempNetWorth && tempNetWorth < targetAmount)) {
+                         timeMonths = Double.POSITIVE_INFINITY;
+                    } else {
+                        // This case should ideally not be hit if logic is correct,
+                        // but as a fallback if target not met and no other condition set it.
+                        timeMonths = Double.POSITIVE_INFINITY;
+                    }
+                }
+            }
+
             results.add(TimeToTargetResult.builder()
                     .annualCtc(currentCtc)
                     .timeToTargetMonths(timeMonths)
                     .build());
 
-            // Check if we've reached or passed the max CTC
+            if (currentCtc >= maxCtc) {
             if (currentCtc >= maxCtc) {
                 break; // Exit loop
             }
