@@ -209,7 +209,6 @@ public class TaxCalculationService {
                     .build());
 
             if (currentCtc >= maxCtc) {
-            if (currentCtc >= maxCtc) {
                 break; // Exit loop
             }
 
